@@ -6,14 +6,15 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent
 ENV_PATH = BASE_DIR / ".env"
 
-if os.getenv("VERCEL"):
-    UPLOAD_FOLDER = Path("/tmp/uploads")
-    CHROMA_DB_PATH = Path("/tmp/chroma_db")
-    SETTINGS_PATH = Path("/tmp/runtime_settings.json")
+if os.environ.get("VERCEL"):
+    DATA_DIR = Path("/tmp")
+    SETTINGS_PATH = DATA_DIR / "runtime_settings.json"
+    UPLOAD_FOLDER = DATA_DIR / "uploads"
+    CHROMA_DB_PATH = DATA_DIR / "chroma_db"
 else:
+    SETTINGS_PATH = BASE_DIR / "runtime_settings.json"
     UPLOAD_FOLDER = BASE_DIR / "uploads"
     CHROMA_DB_PATH = BASE_DIR / "chroma_db"
-    SETTINGS_PATH = BASE_DIR / "runtime_settings.json"
 
 UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 CHROMA_DB_PATH.mkdir(parents=True, exist_ok=True)

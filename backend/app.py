@@ -38,6 +38,8 @@ except ImportError:
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
+if not (FRONTEND_DIR / "index.html").exists():
+    FRONTEND_DIR = BASE_DIR.parent
 UPLOAD_DIR = Path(UPLOAD_FOLDER).resolve()
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 

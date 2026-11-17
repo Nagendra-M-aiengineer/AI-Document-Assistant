@@ -1,32 +1,16 @@
-# Virtual environment
 venv/
-.venv/
-ENV/
-env/
-
-# Environment secrets (NEVER commit API keys)
-.env
-.env.*
-backend/.env
-runtime_settings.json
-backend/runtime_settings.json
-
-# Database and uploads
-backend/chroma_db/
-chroma_db/
-backend/uploads/
-uploads/
-*.sqlite3
-
-# Python bytecode & cache
 __pycache__/
-backend/__pycache__/
 *.py[cod]
 *$py.class
-.pytest_cache/
-
-# IDE & OS files
+*.log
+.env
+.env.*
+!.env.example
+.vercel
+backend/chroma_db/
+backend/uploads/
+backend/__pycache__/
+backend/.env
+runtime_settings.json
 .vscode/
-.idea/
 .DS_Store
-Thumbs.db

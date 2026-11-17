@@ -1,12 +1,13 @@
 import sys
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-BACKEND_DIR = BASE_DIR / "backend"
+# Add backend directory to sys.path so all imports work seamlessly
+root_dir = Path(__file__).resolve().parent.parent
+backend_dir = root_dir / "backend"
 
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
-if str(BASE_DIR) not in sys.path:
-    sys.path.insert(0, str(BASE_DIR))
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
 
-from backend.app import app
+from app import app
