@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Assistant – Modern Enterprise RAG</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body data-theme="dark">
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div class="brand-info">
+                    <h2>DocuSense RAG</h2>
+                    <span class="brand-badge">Enterprise v2.0</span>
+                </div>
+            </div>
+
+            <button id="newChatBtn" class="btn btn-primary new-chat-btn">
+                <i class="fa-solid fa-plus"></i>
+                <span>New Conversation</span>
+            </button>
+
+            <!-- Knowledge Base Section -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <span class="section-title"><i class="fa-solid fa-database"></i> Knowledge Base</span>
+                    <button id="clearAllDocsBtn" class="btn-text-danger" title="Clear all indexed documents">
+                        <i class="fa-regular fa-trash-can"></i>
+                    </button>
+                </div>
+
+                <!-- Dropzone -->
+                <div class="upload-dropzone" id="uploadDropzone">
+                    <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.pptx,.md,.csv" multiple hidden>
+                    <div class="dropzone-icon">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <h4>Drop documents here</h4>
+                    <p class="dropzone-hint">PDF, DOCX, TXT, PPTX, MD, CSV</p>
+                    <button type="button" class="btn btn-secondary btn-sm" id="browseFilesBtn">
+                        <i class="fa-solid fa-folder-open"></i> Browse Files
+                    </button>
+                    <div class="upload-progress-container" id="uploadProgressContainer" style="display: none;">
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill" id="uploadProgressBar"></div>
+                        </div>
+                        <span class="progress-status" id="uploadProgressStatus">Chunking & embedding...</span>
+                    </div>
+                </div>
+
+                <!-- Document List -->
+                <div class="documents-container">
+                    <div class="docs-header">
+                        <span>Indexed Files (<span id="docCount">0</span>)</span>
+                        <span id="totalChunksBadge" class="chunk-badge">0 chunks</span>
+                    </div>
+                    <ul id="documentList" class="document-list">
+                        <li class="empty-docs-state">
+                            <i class="fa-regular fa-file-lines"></i>
+                            <p>No documents uploaded yet.<br>Drop files above to index.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- System Info Footer -->
+            <div class="sidebar-footer">
+                <div class="system-status-card">
+                    <div class="status-row">
+                        <span class="status-dot online"></span>
+                        <span class="status-label">ChromaDB Engine</span>
+                        <span class="status-val" id="vectorStoreStatus">Active</span>
+                    </div>
+                    <div class="status-row">
+                        <i class="fa-solid fa-microchip"></i>
+                        <span class="status-label">Active Model</span>
+                        <span class="status-val model-pill" id="sidebarModelBadge">gpt-4o-mini</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Top Navbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <div class="title-group">
+                        <h1>AI Knowledge Assistant</h1>
+                        <p class="subtitle">Semantic vector retrieval & multi-document synthesis</p>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="status-chip" id="topbarStatusChip">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Grounded Context</span>
+                    </div>
+
+                    <button id="themeToggleBtn" class="btn-icon" title="Toggle Light/Dark Theme" aria-label="Toggle theme">
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+
+                    <button id="settingsModalBtn" class="btn-icon" title="Model & API Settings" aria-label="Settings">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Stream Area -->
+            <div class="chat-viewport" id="chatViewport">
+                <div class="chat-container" id="chatContainer">
+                    <!-- Welcome Screen -->
+                    <div class="welcome-hero" id="welcomeHero">
+                        <div class="hero-badge">
+                            <i class="fa-solid fa-sparkles"></i> Grounded Retrieval-Augmented Generation
+                        </div>
+                        <h2>What would you like to explore in your documents?</h2>
+                        <p class="hero-description">
+                            Upload enterprise reports, technical papers, or notes. DocuSense extracts semantic vectors and generates accurate answers citing exact pages.
+                        </p>
+
+                        <div class="feature-cards-grid">
+                            <div class="feature-card">
+                                <div class="card-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                <h3>Semantic Search</h3>
+                                <p>Deep vector matching finds relevant paragraphs even with conversational phrasing.</p>
+                            </div>
+                            <div class="feature-card">
+                                <div class="card-icon"><i class="fa-solid fa-quote-left"></i></div>
+                                <h3>Verified Citations</h3>
+                                <p>Every answer links back to specific file names, page numbers, and exact quotes.</p>
+                            </div>
+                            <div class="feature-card">
+                                <div class="card-icon"><i class="fa-solid fa-brain"></i></div>
+                                <h3>Multi-LLM Grounding</h3>
+                                <p>Powered by OpenAI, Groq Llama, or local fallback synthesis with zero crashes.</p>
+                            </div>
+                        </div>
+
+                        <div class="starter-prompts-section">
+                            <span class="starter-label">Try asking:</span>
+                            <div class="prompt-chips">
+                                <button class="prompt-chip" data-prompt="Provide a comprehensive executive summary of the uploaded document.">
+                                    <i class="fa-regular fa-compass"></i> Provide an executive summary
+                                </button>
+                                <button class="prompt-chip" data-prompt="What are the key findings, methodologies, and main conclusions?">
+                                    <i class="fa-regular fa-lightbulb"></i> What are the key findings?
+                                </button>
+                                <button class="prompt-chip" data-prompt="Extract all important metrics, dates, and actionable recommendations.">
+                                    <i class="fa-regular fa-chart-bar"></i> Extract metrics & recommendations
+                                </button>
+                                <button class="prompt-chip" data-prompt="What risks or challenges are identified in the document?">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> Identify risks & challenges
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Composer Area -->
+            <div class="composer-container">
+                <form class="composer-form" id="composerForm">
+                    <div class="composer-shell">
+                        <button type="button" class="btn-composer-action" id="composerAttachBtn" title="Upload document">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </button>
+                        <textarea
+                            id="questionInput"
+                            placeholder="Ask a question about your indexed documents..."
+                            rows="1"
+                        ></textarea>
+                        <button type="submit" class="btn-send" id="sendBtn" title="Send message" disabled>
+                            <i class="fa-solid fa-arrow-up"></i>
+                        </button>
+                    </div>
+                    <div class="composer-footer">
+                        <span class="shortcut-hint"><kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for newline</span>
+                        <span class="knowledge-context-indicator" id="contextIndicator">
+                            <i class="fa-solid fa-circle-check"></i> Ready to answer
+                        </span>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-backdrop" id="settingsModal" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fa-solid fa-sliders"></i>
+                    <h3>Model & Retrieval Settings</h3>
+                </div>
+                <button class="modal-close" id="closeSettingsModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="settingsProvider">LLM Provider</label>
+                    <select id="settingsProvider" class="form-control">
+                        <option value="auto">Auto (DocuSense Grounded AI + Cloud LLMs)</option>
+                        <option value="gemini">Google Gemini (Gemini 1.5 Flash - 100% Free Tier)</option>
+                        <option value="groq">Groq (Llama 3.3 70B - High Speed Free Tier)</option>
+                        <option value="openai">OpenAI (GPT-4o mini, GPT-4o)</option>
+                        <option value="grounded_synthesizer">DocuSense Grounded AI (Offline / Zero Keys)</option>
+                    </select>
+                    <span class="form-hint">DocuSense Grounded AI answers directly from your documents with zero cost and zero crashes.</span>
+                </div>
+
+                <div class="form-group" id="geminiKeyGroup">
+                    <label for="settingsGeminiKey">Google Gemini API Key (Recommended Free Cloud LLM)</label>
+                    <div class="input-password-wrapper">
+                        <input type="password" id="settingsGeminiKey" class="form-control" placeholder="AIzaSy...">
+                        <button type="button" class="btn-toggle-eye" id="toggleGeminiEye"><i class="fa-regular fa-eye"></i></button>
+                    </div>
+                    <span class="form-hint" id="geminiKeyStatus">Free API key available at aistudio.google.com</span>
+                </div>
+
+                <div class="form-group" id="groqKeyGroup">
+                    <label for="settingsGroqKey">Groq API Key (Free High-Speed Llama 3)</label>
+                    <div class="input-password-wrapper">
+                        <input type="password" id="settingsGroqKey" class="form-control" placeholder="gsk_...">
+                        <button type="button" class="btn-toggle-eye" id="toggleGroqEye"><i class="fa-regular fa-eye"></i></button>
+                    </div>
+                    <span class="form-hint" id="groqKeyStatus">Free API key available at console.groq.com</span>
+                </div>
+
+                <div class="form-group" id="openaiKeyGroup">
+                    <label for="settingsOpenAIKey">OpenAI API Key (Paid / Billing Account)</label>
+                    <div class="input-password-wrapper">
+                        <input type="password" id="settingsOpenAIKey" class="form-control" placeholder="sk-proj-...">
+                        <button type="button" class="btn-toggle-eye" id="toggleOpenAIEye"><i class="fa-regular fa-eye"></i></button>
+                    </div>
+                    <span class="form-hint" id="openaiKeyStatus">Requires active credit balance at platform.openai.com</span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="settingsModel">OpenAI Model</label>
+                        <select id="settingsModel" class="form-control">
+                            <option value="gpt-4o-mini">gpt-4o-mini (Recommended)</option>
+                            <option value="gpt-4o">gpt-4o (High Intelligence)</option>
+                            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="settingsTopK">Retrieved Chunks (Top-K)</label>
+                        <input type="number" id="settingsTopK" class="form-control" min="1" max="10" value="4">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="settingsChunkSize">Chunk Size (chars)</label>
+                        <input type="number" id="settingsChunkSize" class="form-control" min="100" max="2000" step="50" value="500">
+                    </div>
+                    <div class="form-group">
+                        <label for="settingsChunkOverlap">Chunk Overlap</label>
+                        <input type="number" id="settingsChunkOverlap" class="form-control" min="0" max="500" step="20" value="100">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelSettingsBtn">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
