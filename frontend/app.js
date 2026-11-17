@@ -2,8 +2,9 @@
  * DocuSense Enterprise RAG - Client Application
  */
 
-// Detect API host (defaults to FastAPI backend at port 8000 when opened via Live Server or file)
-const API_BASE = (window.location.port !== "8000")
+// Detect API host (defaults to FastAPI backend at port 8000 when opened via Live Server, otherwise uses current origin on Vercel/production)
+const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const API_BASE = (isLocalhost && window.location.port !== "8000")
     ? "http://127.0.0.1:8000"
     : window.location.origin;
 
